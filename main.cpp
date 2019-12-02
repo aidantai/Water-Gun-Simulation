@@ -6,9 +6,9 @@
 
 int main() {
     srand(time(NULL)); // Random seed
-    const int simulations = 1000;
-    const int population = 1000;
-    const int dimensions = 1;
+    const int simulations = 1;
+    const int population = 10000;
+    const int dimensions = 10;
 
     double totalSoakedAverages;
 
@@ -56,10 +56,10 @@ int main() {
             }
 
             for (int d = 0; d < dimensions; d++) {
-                if (XYZ[subject][d] < 0.25 || XYZ[subject][d] > 0.75) {
+                if (XYZ[subject][d] < 0.10 || XYZ[subject][d] > 0.90) {
                     subjectInSample = false;
                 }
-                if (XYZclosest[d] < 0.25 || XYZclosest[d] > 0.75) {
+                if (XYZclosest[d] < 0.10 || XYZclosest[d] > 0.90) {
                     targetInSample = false;
                 }
             }
@@ -98,6 +98,7 @@ int main() {
         double numSoaked = 0;
         for (int p = 0; p < population; p++) {
             for (int d = 0; d < dimensions; d++) {
+                std::cout << soakedPoints[p][d] << std::endl;
                 if (soakedPoints[p][d] == -5) {
                     endOfSP = true;
                     break;
@@ -109,7 +110,10 @@ int main() {
                 break;
             }
         }
-        totalSoakedAverages += numSoaked/numInSample;
+        if (numInSample != 0) {
+            //std::cout << numSoaked << std::endl;
+            totalSoakedAverages += numSoaked/numInSample;
+        }
     }
 
     double aveSoaked = 100*totalSoakedAverages/simulations;
