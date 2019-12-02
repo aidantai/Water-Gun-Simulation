@@ -2,60 +2,117 @@
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
-#include <vector>
-#include <algorithm>
-#include <boost/array.hpp>
-
+#include <iomanip>
 
 int main() {
     srand(time(NULL)); // Random seed
-    unsigned short simulations = 100;
-    unsigned short population = 10;
-    unsigned short dimensions = 10;
+    const int simulations = 1000;
+    const int population = 1000;
+    const int dimensions = 1;
 
-    for (int s = 0; s < simulations; s++) {
+    double totalSoakedAverages;
+
+    for (int sim = 0; sim < simulations; sim++) {
         
-        double XYZ[population][dimensions];
+        double numInSample = 0;
+
+        // Create all random points
+        double XYZ[population][dimensions]; 
         for (int p = 0; p < population; p++) {
             for (int d = 0; d < dimensions; d++) {
                 XYZ[p][d] = ((double) rand() / (RAND_MAX));
             }
         }
 
-        std::vector<boost::array<double, dimensions> > soakedPoints;
+        // I don't like this... but it creates a list for all the coordinates of soaked people. Defaults to -1. 
+        // I could have used a vector but idk how to use multi-dimensional vectors.
+        double soakedPoints[population][dimensions];
+        for (int p = 0; p < population; p++) {
+            for (int d = 0; d < dimensions; d++) {
+                soakedPoints[p][d] = -5;
+            }
+        }
+        int soakedIndex = 0;
 
         for (int subject = 0; subject < population; subject++) {
             double minDist = 3;
             double XYZclosest[dimensions];
+            bool subjectInSample = true;
+            bool targetInSample = true;
+
             for (int target = 0; target < population; target++) {
                 if (subject != target) {
                     double dist = 0;
                     for (int d = 0; d < dimensions; d++) {
-                        dist += pow((XYZ[target][d] - XYZ[subject][d]), 2);
+                        dist += ((XYZ[target][d] - XYZ[subject][d])*(XYZ[target][d] - XYZ[subject][d]));
                     }
                     if (dist < minDist) {
                         minDist = dist;
                         for (int d = 0; d < dimensions; d++) {
-                            XYZclosest[d] = XYZ[target][d];
+                            XYZclosest[d] = XYZ[target][d]; // XYZclosest becomes the target that will ultimately be shot
                         }
                     }
                 }
             }
-            std::vector<double>::iterator it;
-            it = find(soakedPoints.begin(), soakedPoints.end(), );
-            double *foo = std::find(std::begin(soakedPoints), std::end(soakedPoints), )
+
+            for (int d = 0; d < dimensions; d++) {
+                if (XYZ[subject][d] < 0.25 || XYZ[subject][d] > 0.75) {
+                    subjectInSample = false;
+                }
+                if (XYZclosest[d] < 0.25 || XYZclosest[d] > 0.75) {
+                    targetInSample = false;
+                }
+            }
+
+            if (subjectInSample) {
+                numInSample++;
+            }
+
+            if (targetInSample) {
+                // Checks if the XYZclosest point already exists in soakedPoints.
+                int matchCounter;
+                bool alreadyExists = false;
+                for (int s = 0; s <= subject; s++) {
+                    matchCounter = 0;
+                    for (int d = 0; d < dimensions; d++) {
+                        if (XYZclosest[d] == soakedPoints[s][d]) {
+                            matchCounter++;
+                        }
+                    }
+                    if (matchCounter == dimensions) {
+                        alreadyExists = true;
+                    }
+                }
+                // Adds XYZclosest to soakedPoints if it isn't already there.
+                if (!alreadyExists) {
+                    for (int d = 0; d < dimensions; d++) {
+                        soakedPoints[soakedIndex][d] = XYZclosest[d];
+                    }
+                    soakedIndex++;
+                }
+            }
         }
 
-Foo array[10];
-... // Init the array here
-Foo *foo = std::find(std::begin(array), std::end(array), someObject);
-// When the element is not found, std::find returns the end of the range
-if (foo != std::end(array)) {
-    cerr << "Found at position " << std::distance(array, foo) << endl;
-} else {
-    cerr << "Not found" << endl;
-}
-
-
+        // Find the number of soaked people in soakedPoints.
+        bool endOfSP = false;
+        double numSoaked = 0;
+        for (int p = 0; p < population; p++) {
+            for (int d = 0; d < dimensions; d++) {
+                if (soakedPoints[p][d] == -5) {
+                    endOfSP = true;
+                    break;
+                }
+            }
+            if (!endOfSP) {
+                numSoaked++;
+            } else {
+                break;
+            }
+        }
+        totalSoakedAverages += numSoaked/numInSample;
     }
+
+    double aveSoaked = 100*totalSoakedAverages/simulations;
+
+    std::cout << aveSoaked << std::endl;
 }
